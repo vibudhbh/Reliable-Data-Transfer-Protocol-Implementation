@@ -1,52 +1,51 @@
 import socket
 import threading
 import random
-import time
-"""
-A simple network simulator that can introduce packet loss, corruption, and delay.
-"""
+
 class NetworkSimulator:
-    def __init__(self, listen_addr, forward_addr, loss_rate=0.1, corruption_rate=0.1, delay_rate=0.1):
-        self.listen_addr = listen_addr
-        self.forward_addr = forward_addr
-        self.loss_rate = loss_rate          # Fraction of packets to drop
-        self.corruption_rate = corruption_rate  # Fraction of packets to corrupt
-        self.delay_rate = delay_rate        # Fraction of packets to delay
+    def __init__(self, client_listen, server_addr, loss_rate=0.1, corruption_rate=0.1, delay_rate=0.1):
+        self.client_listen = client_listen  # port 9000 (client sends here)
+        self.server_addr = server_addr      # port 9001 (server listens here)
+        self.loss_rate = loss_rate
+        self.corruption_rate = corruption_rate
+        self.delay_rate = delay_rate
+
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.bind(listen_addr)
+        self.socket.bind(self.client_listen)
 
     def start(self):
-        print(f"Simulator started on {self.listen_addr}, forwarding to {self.forward_addr}")
+        print(f"Simulator running on {self.client_listen}, forwarding to {self.server_addr}")
         while True:
             data, addr = self.socket.recvfrom(4096)
-            # Simulate packet loss
+
+            if addr[1] == 8000:
+                direction = "Client → Server"
+                forward_addr = self.server_addr
+            else:
+                direction = "Server → Client"
+                forward_addr = ('localhost', 8000)
+
             if random.random() < self.loss_rate:
-                print("Simulated packet loss.")
+                print(f"[{direction}] Dropped packet.")
                 continue
 
-            # Simulate packet corruption
             if random.random() < self.corruption_rate:
-                print("Simulated packet corruption.")
+                print(f"[{direction}] Corrupted packet.")
                 data = bytearray(data)
-                # Flip a random byte
-                index = random.randint(0, len(data) - 1)
-                data[index] = (data[index] + 1) % 256
+                data[random.randint(0, len(data)-1)] ^= 0xFF
                 data = bytes(data)
 
-            # Simulate delay (and possible reordering)
             if random.random() < self.delay_rate:
                 delay = random.uniform(0.5, 2.0)
-                print(f"Simulated delay of {delay:.2f} seconds.")
-                threading.Timer(delay, self.forward, args=(data,)).start()
+                print(f"[{direction}] Delayed packet by {delay:.2f}s.")
+                threading.Timer(delay, self.socket.sendto, args=(data, forward_addr)).start()
             else:
-                self.forward(data)
-
-    def forward(self, data):
-        self.socket.sendto(data, self.forward_addr)
+                self.socket.sendto(data, forward_addr)
 
 if __name__ == '__main__':
-    # Example usage:
-    # Simulator listens on localhost:9000 and forwards to localhost:9001
-    sim = NetworkSimulator(('localhost', 9000), ('localhost', 9001),
-                           loss_rate=0.1, corruption_rate=0.1, delay_rate=0.1)
-    sim.start()
+    simulator = NetworkSimulator(
+        client_listen=('localhost', 9000),  # listens from both client & server
+        server_addr=('localhost', 9001),
+        loss_rate=0.1, corruption_rate=0.1, delay_rate=0.1
+    )
+    simulator.start()

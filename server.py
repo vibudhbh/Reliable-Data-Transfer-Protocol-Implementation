@@ -1,5 +1,4 @@
 import sys
-import socket
 import threading
 import time
 from rdt import RDT_Receiver
@@ -7,16 +6,16 @@ from rdt import RDT_Receiver
 def receive_file(save_filename, local_addr):
     receiver = RDT_Receiver(local_addr)
     recv_thread = threading.Thread(target=receiver.listen)
-    recv_thread.daemon = True
     recv_thread.start()
 
-    # For this simple example, we wait a fixed amount of time for the transfer to complete.
-    # In a production system you would use a better termination signal.
-    time.sleep(10)
+    time.sleep(10)  # Adjust this based on your real scenario or EOF logic
+
+    receiver.close()
+    recv_thread.join()
+
     data = receiver.get_data()
     with open(save_filename, 'wb') as f:
         f.write(data)
-    receiver.close()
     print(f"File saved as {save_filename}")
 
 if __name__ == '__main__':

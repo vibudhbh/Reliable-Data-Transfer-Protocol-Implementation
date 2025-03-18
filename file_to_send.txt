@@ -1,0 +1,5 @@
+This is a file simulator test for the rdt protocol. 500000 bytes
+
+This is a file simulator test for the rdt protocol. 500000 bytes
+
+CSCI-651 Assignment 3

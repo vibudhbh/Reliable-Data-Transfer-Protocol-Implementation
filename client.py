@@ -1,5 +1,4 @@
 import sys
-import socket
 from rdt import RDT_Sender
 
 def send_file(filename, local_addr, remote_addr):
