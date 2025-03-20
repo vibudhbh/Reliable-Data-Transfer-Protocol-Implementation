@@ -1,0 +1,22 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{\numberline {1}Reliable Data Transfer (RDT) Protocol Documentation}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Overview}{1}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Requirements}{1}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Usage}{1}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1}client.py}{1}{subsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.3.2}server.py}{1}{subsection.1.3.2}%
+\contentsline {subsection}{\numberline {1.3.3}simulator.py}{1}{subsection.1.3.3}%
+\contentsline {section}{\numberline {1.4}Command\sphinxhyphen {}Line Arguments}{1}{section.1.4}%
+\contentsline {subsection}{\numberline {1.4.1}client.py}{1}{subsection.1.4.1}%
+\contentsline {subsection}{\numberline {1.4.2}server.py}{2}{subsection.1.4.2}%
+\contentsline {section}{\numberline {1.5}Functionality}{2}{section.1.5}%
+\contentsline {subsection}{\numberline {1.5.1}Packet Class}{2}{subsection.1.5.1}%
+\contentsline {subsection}{\numberline {1.5.2}RDT\_Sender Class}{2}{subsection.1.5.2}%
+\contentsline {subsection}{\numberline {1.5.3}RDT\_Receiver Class}{2}{subsection.1.5.3}%
+\contentsline {subsection}{\numberline {1.5.4}NetworkSimulator Class}{2}{subsection.1.5.4}%
+\contentsline {section}{\numberline {1.6}Example Usage}{2}{section.1.6}%
+\contentsline {subsection}{\numberline {1.6.1}1. Start the Simulator}{2}{subsection.1.6.1}%
+\contentsline {subsection}{\numberline {1.6.2}2. Start the Server}{3}{subsection.1.6.2}%
+\contentsline {subsection}{\numberline {1.6.3}3. Start the Client}{3}{subsection.1.6.3}%
+\contentsline {section}{\numberline {1.7}Notes}{3}{section.1.7}%
+\contentsline {section}{\numberline {1.8}License}{3}{section.1.8}%
