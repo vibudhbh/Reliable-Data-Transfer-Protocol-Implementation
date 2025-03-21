@@ -54,12 +54,13 @@ class RDT_Sender:
 
     def send(self, data):
         chunk_size = 1024
-        chunks = [data[i:i+chunk_size] for i in range(0, len(data), chunk_size)]
+        chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
         total_chunks = len(chunks)
         self.base = 0
         self.next_seq_num = 0
+        self.eof_seq_num = total_chunks  # Explicit EOF packet seq number
 
-        recv_thread = threading.Thread(target=self._recv_ack_thread, args=(total_chunks,))
+        recv_thread = threading.Thread(target=self._recv_ack_thread, args=())
         recv_thread.start()
 
         while self.base < total_chunks:
@@ -74,7 +75,31 @@ class RDT_Sender:
                     self.next_seq_num += 1
             time.sleep(0.1)
 
-        recv_thread.join()
+        recv_thread.join()  # Wait until data packets are fully ACK'd
+
+        # Now send EOF packet
+        eof_pkt = Packet(seq_num=self.eof_seq_num, data=b'EOF', ack=False)
+        self.socket.send(eof_pkt.to_bytes())
+        print(f"Sent EOF packet {self.eof_seq_num}")
+
+        # Wait explicitly for EOF ACK
+        eof_ack_received = False
+        retries = 0
+        MAX_RETRIES = 10
+        while not eof_ack_received and retries < MAX_RETRIES:
+            try:
+                data = self.socket.recv(4096)
+                pkt = Packet.from_bytes(data)
+                if pkt.ack and pkt.is_valid() and pkt.seq_num == self.eof_seq_num:
+                    eof_ack_received = True
+                    print("Received EOF ACK. Transfer complete.")
+            except socket.timeout:
+                retries += 1
+                print("Timeout waiting for EOF ACK, retransmitting EOF packet.")
+                self.socket.send(eof_pkt.to_bytes())
+
+        if not eof_ack_received:
+            print("Failed to receive EOF ACK after retries.")
 
     def _start_timer(self):
         if self.timer:
@@ -90,8 +115,8 @@ class RDT_Sender:
                     self.socket.send(self.window[seq].to_bytes())
             self._start_timer()
 
-    def _recv_ack_thread(self, total_chunks):
-        while self.base < total_chunks:
+    def _recv_ack_thread(self):
+        while self.base < self.eof_seq_num:
             try:
                 data = self.socket.recv(4096)
                 pkt = Packet.from_bytes(data)
@@ -132,6 +157,13 @@ class RDT_Receiver:
                     print("Received corrupted packet, discarding.")
                     continue
 
+                # Handle EOF explicitly
+                if pkt.data == b'EOF':
+                    print(f"Received EOF packet {pkt.seq_num}, sending ACK and terminating receiver.")
+                    self._send_ack(pkt.seq_num, addr)
+                    self.running = False
+                    break
+
                 if pkt.seq_num == self.expected_seq and not pkt.ack:
                     print(f"Received expected packet {pkt.seq_num}")
                     self.received_data[pkt.seq_num] = pkt.data
@@ -153,7 +185,7 @@ class RDT_Receiver:
         print(f"Sent ACK for packet {seq_num}")
 
     def get_data(self):
-        data = b''.join(self.received_data[i] for i in sorted(self.received_data.keys()))
+        data = b''.join(self.received_data[i] for i in sorted(self.received_data))
         return data
 
     def close(self):

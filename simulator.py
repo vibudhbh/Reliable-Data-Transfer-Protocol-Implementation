@@ -46,6 +46,6 @@ if __name__ == '__main__':
     simulator = NetworkSimulator(
         client_listen=('localhost', 9000),  # listens from both client & server
         server_addr=('localhost', 9001),
-        loss_rate=0.1, corruption_rate=0.1, delay_rate=0.1
+        loss_rate=0.1, corruption_rate=0.3, delay_rate=0.2
     )
     simulator.start()

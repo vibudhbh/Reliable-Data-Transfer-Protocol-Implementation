@@ -1,6 +1,5 @@
 import sys
 import threading
-import time
 from rdt import RDT_Receiver
 
 def receive_file(save_filename, local_addr):
@@ -8,10 +7,9 @@ def receive_file(save_filename, local_addr):
     recv_thread = threading.Thread(target=receiver.listen)
     recv_thread.start()
 
-    time.sleep(10)  # Adjust this based on your real scenario or EOF logic
+    recv_thread.join()  # Wait explicitly for EOF
 
     receiver.close()
-    recv_thread.join()
 
     data = receiver.get_data()
     with open(save_filename, 'wb') as f:
